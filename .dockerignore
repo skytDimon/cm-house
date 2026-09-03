@@ -1,0 +1,12 @@
+node_modules
+dist
+.git
+.claude
+shots
+messages.html
+photo_55@01-09-2026_10-53-22.jpg
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
