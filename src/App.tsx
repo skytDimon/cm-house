@@ -111,10 +111,8 @@ function useMaskPositions(
     measure();
     const ro = new ResizeObserver(() => measure());
     ro.observe(section);
-    window.addEventListener('scroll', measure, { passive: true });
     return () => {
       ro.disconnect();
-      window.removeEventListener('scroll', measure);
     };
   }, [sectionRef, measure]);
 
@@ -848,6 +846,7 @@ function Section3() {
               <img
                 src={SECTION3_IMG1}
                 alt="Модульная баня в лесу"
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -855,6 +854,7 @@ function Section3() {
               <img
                 src={SECTION3_IMG2}
                 alt="Компактная модульная баня"
+                loading="lazy"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -897,6 +897,7 @@ function Section3() {
           <img
             src={SECTION3_BG}
             alt="Модульная баня-бочка"
+            loading="lazy"
             className="w-full h-full object-cover"
           />
           <div className="absolute bottom-3 left-3 right-3 md:bottom-5 md:left-5 md:right-5 flex gap-1.5 md:gap-2">
@@ -1131,6 +1132,7 @@ function SectionGallery() {
             alt={`Проект ${lightboxIndex + 1}`}
             className="max-w-full max-h-[85vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
+            loading="lazy"
           />
 
           {/* Next */}
