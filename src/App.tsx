@@ -20,8 +20,6 @@ const HERO_IMAGE = '/photos/hero-house.jpg?v=3';
 
 const SECTION2_IMAGE = '/photos/baths-dusk.jpg?v=2';
 
-const SECTION3_IMG1 = '/photos/bath-terrace.jpg';
-const SECTION3_IMG2 = '/photos/bath-small.jpg';
 const SECTION3_BG = '/photos/barrel-snow.jpg';
 
 /* -------------------------------------------------------------------------- */
@@ -851,7 +849,6 @@ function Section2({ focalX }: { focalX: number }) {
 /* -------------------------------------------------------------------------- */
 
 function Section3() {
-  const openModal = useOpenModal();
   const s3Reveal = useStaggeredReveal(4);
 
   return (
@@ -871,65 +868,13 @@ function Section3() {
               <br />
               под ключ
             </h2>
-            <p className="text-xs md:text-sm font-semibold text-black">
-              Каркас, печь, отделка — включено
-            </p>
           </div>
 
-          <div
-            style={s3Reveal.getAnimStyle(1)}
-            className="flex gap-1.5 md:gap-2 flex-1 min-h-[140px] md:min-h-0"
-          >
-            <div className="flex-1 rounded-xl md:rounded-2xl overflow-hidden">
-              <img
-                src={SECTION3_IMG1}
-                alt="Модульная баня в лесу"
-                loading="lazy"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="flex-1 rounded-xl md:rounded-2xl overflow-hidden">
-              <img
-                src={SECTION3_IMG2}
-                alt="Компактная модульная баня"
-                loading="lazy"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-
-          <div
-            style={s3Reveal.getAnimStyle(2)}
-            className="rounded-xl md:rounded-2xl bg-zinc-200 p-5 md:p-7 flex flex-col justify-between flex-[0.8] min-h-[160px] md:min-h-0"
-          >
-            <div>
-              <p className="text-xs md:text-sm font-semibold text-black/60 mb-1.5">
-                Готовая модель
-              </p>
-              <h3 className="text-lg md:text-2xl font-bold text-black leading-5 md:leading-7 mb-2 md:mb-3">
-                Баня 4,5×2,45 м
-                <br />
-                под ключ
-              </h3>
-              <p className="text-[11px] md:text-xs text-neutral-600 leading-4">
-                Имитация бруса + вагонка штиль 110 мм
-                <span className="hidden md:inline"> • </span>
-                <br className="md:hidden" />
-                Парная из липы, печь с каменкой, бак 50 л
-              </p>
-            </div>
-            <button
-              onClick={openModal}
-              className="mt-3 md:mt-4 self-start px-6 py-2.5 md:px-8 md:py-3 bg-white rounded-full text-black text-sm md:text-base font-bold hover:scale-105 transition-transform shadow-md"
-            >
-              Заказать
-            </button>
-          </div>
         </div>
 
         {/* RIGHT COLUMN */}
         <div
-          style={s3Reveal.getAnimStyle(3)}
+          style={s3Reveal.getAnimStyle(1)}
           className="rounded-xl md:rounded-2xl overflow-hidden relative min-h-[350px] md:min-h-0"
         >
           <img
