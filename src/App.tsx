@@ -9,6 +9,8 @@ import {
 } from 'react'
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from 'react'
 import { submitLead } from './lib/submitLead'
+import { CatalogModal, ProjectDetailsModal, PhotoGalleryModal } from './components/CatalogModals'
+import { housesData, bathsData, galleryCategories, type Project } from './data/catalogData'
 
 /* -------------------------------------------------------------------------- */
 /*  Image URLs — отобранные кадры из /photos (модульные дома и бани CM-HOUSE)  */
@@ -53,10 +55,13 @@ const TELEGRAM_HREF = 'https://t.me/cmhouse';
 const featureBars = ['Дома под ключ', 'Модульные бани', 'Монтаж за 1 день'];
 
 const services = [
-  { name: 'Модульные\nдома', num: '01', active: true },
-  { name: 'Модульные\nбани', num: '02', active: false },
-  { name: 'Готовые\nкомплексы', num: '03', active: false },
-  { name: 'Хозяйственные\nблоки', num: null, active: false },
+  { name: 'Модульные\nдома', num: '01', active: true, type: 'houses' },
+  { name: 'Модульные\nбани-сауны', num: '02', active: false, type: 'baths' },
+  { name: 'Хозяйственные\nблоки', num: '03', active: false, type: 'utility' },
+  { name: 'Беседки', num: '04', active: false, type: 'gazebos' },
+  { name: 'Качели', num: '05', active: false, type: 'swings' },
+  { name: 'Готовые\nкомплексы', num: '06', active: false, type: 'complexes' },
+  { name: 'Свайные\nфундаменты', num: '07', active: false, type: 'foundations' },
 ];
 
 const navLinks = [
@@ -180,11 +185,9 @@ function useStaggeredReveal(count: number, threshold = 0.15) {
     (index: number): CSSProperties => ({
       opacity: visible ? 1 : 0,
       transform: visible ? 'translateY(0)' : 'translateY(24px)',
-      transition: `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${
-        Math.min(index, count - 1) * 120
-      }ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${
-        Math.min(index, count - 1) * 120
-      }ms`,
+      transition: `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${Math.min(index, count - 1) * 120
+        }ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${Math.min(index, count - 1) * 120
+        }ms`,
     }),
     [visible, count],
   );
@@ -223,18 +226,18 @@ function MaskedCard({
 }: MaskedCardProps) {
   const overflowX = position && imageSize.w > position.sw ? imageSize.w - position.sw : 0;
   const overflowY = position && imageSize.h > position.sh ? imageSize.h - position.sh : 0;
-  
+
   const offsetX = overflowX * focalX;
   const offsetY = overflowY * focalY;
 
   // Parallax disabled to prevent background clipping on scroll
   const bgStyle: CSSProperties = position
     ? {
-        backgroundImage: `url(${bgImage})`,
-        backgroundSize: `${imageSize.w}px ${imageSize.h}px`,
-        backgroundPosition: `-${position.x + offsetX}px -${position.y + offsetY}px`,
-        backgroundRepeat: 'no-repeat',
-      }
+      backgroundImage: `url(${bgImage})`,
+      backgroundSize: `${imageSize.w}px ${imageSize.h}px`,
+      backgroundPosition: `-${position.x + offsetX}px -${position.y + offsetY}px`,
+      backgroundRepeat: 'no-repeat',
+    }
     : {};
 
   return (
@@ -272,7 +275,7 @@ function ArrowIcon({ className = '' }: { className?: string }) {
 /*  Lead form (modal + inline)                                                */
 /* -------------------------------------------------------------------------- */
 
-const ModalContext = createContext<() => void>(() => {})
+const ModalContext = createContext<(prefill?: string | any) => void>(() => { })
 
 function useOpenModal() {
   return useContext(ModalContext)
@@ -280,13 +283,26 @@ function useOpenModal() {
 
 const INTEREST_OPTIONS = ['Баня', 'Модульный дом', 'Другое'] as const
 
-function LeadForm({ idPrefix }: { idPrefix: string }) {
+function LeadForm({ idPrefix, prefill = '' }: { idPrefix: string, prefill?: string }) {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [interest, setInterest] = useState<string>(INTEREST_OPTIONS[0])
-  const [comment, setComment] = useState('')
+  const [comment, setComment] = useState(prefill)
   const [error, setError] = useState('')
   const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle')
+
+  useEffect(() => {
+    if (prefill) {
+      if (prefill.toLowerCase().includes('бан') || prefill.toLowerCase().includes('саун')) {
+        setInterest('Баня')
+      } else if (prefill.toLowerCase().includes('дом') || prefill.toLowerCase().includes('сканди') || prefill.toLowerCase().includes('барн')) {
+        setInterest('Модульный дом')
+      } else {
+        setInterest('Другое')
+      }
+      setComment(prefill)
+    }
+  }, [prefill])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -396,7 +412,7 @@ function LeadForm({ idPrefix }: { idPrefix: string }) {
   )
 }
 
-function RequestModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function RequestModal({ open, onClose, prefill = '' }: { open: boolean; onClose: () => void, prefill?: string }) {
   useEffect(() => {
     if (!open) return
     document.body.style.overflow = 'hidden'
@@ -412,18 +428,16 @@ function RequestModal({ open, onClose }: { open: boolean; onClose: () => void })
 
   return (
     <div
-      className={`fixed inset-0 z-[300] flex items-center justify-center p-4 transition-opacity duration-300 ${
-        open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-      }`}
+      className={`fixed inset-0 z-[300] flex items-center justify-center p-4 transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
     >
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
-        className={`relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          open ? 'translate-y-0 scale-100' : 'translate-y-6 scale-95'
-        }`}
+        className={`relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${open ? 'translate-y-0 scale-100' : 'translate-y-6 scale-95'
+          }`}
       >
         <button
           aria-label="Закрыть"
@@ -438,7 +452,7 @@ function RequestModal({ open, onClose }: { open: boolean; onClose: () => void })
         <p className="text-sm text-neutral-500 mb-5">
           Перезвоним в течение 15 минут в рабочее время
         </p>
-        <LeadForm idPrefix="modal" />
+        <LeadForm idPrefix="modal" prefill={prefill} />
       </div>
     </div>
   )
@@ -468,17 +482,16 @@ function Navbar() {
 
   return (
     <>
-      <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 py-2 md:py-3 transition-all duration-300 ${
-        scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-white/80 backdrop-blur-md'
-      }`}>
+      <header className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-6 py-2 md:py-3 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm' : 'bg-white/80 backdrop-blur-md'
+        }`}>
         {/* logo */}
         <a href="#hero" className="flex items-center gap-3">
           <img src="/logo.jpg" alt="CM-HOUSE" className="h-9 md:h-11 w-auto rounded-md object-cover" />
-          <div className="flex flex-col">
+          <div className="flex flex-col justify-center">
             <div className="text-xl md:text-2xl font-extrabold uppercase tracking-tight leading-none">
               CM
             </div>
-            <div className="-mt-1.5 md:-mt-2 text-xl md:text-2xl font-extrabold uppercase tracking-tight leading-none">
+            <div className="text-xl md:text-2xl font-extrabold uppercase tracking-tight leading-none mt-0.5">
               House
             </div>
             <div className="text-[8px] md:text-[9px] font-medium leading-none mt-1.5 md:mt-2">
@@ -514,39 +527,33 @@ function Navbar() {
           onClick={() => setOpen((v) => !v)}
         >
           <span
-            className={`absolute h-0.5 w-6 bg-black rounded-full transition-all duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] ${
-              open ? 'rotate-45 translate-y-0' : '-translate-y-2'
-            }`}
+            className={`absolute h-0.5 w-6 bg-black rounded-full transition-all duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] ${open ? 'rotate-45 translate-y-0' : '-translate-y-2'
+              }`}
           />
           <span
-            className={`absolute h-0.5 w-6 bg-black rounded-full transition-all duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] ${
-              open ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'
-            }`}
+            className={`absolute h-0.5 w-6 bg-black rounded-full transition-all duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] ${open ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'
+              }`}
           />
           <span
-            className={`absolute h-0.5 w-6 bg-black rounded-full transition-all duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] ${
-              open ? '-rotate-45 translate-y-0' : 'translate-y-2'
-            }`}
+            className={`absolute h-0.5 w-6 bg-black rounded-full transition-all duration-300 ease-[cubic-bezier(0.76,0,0.24,1)] ${open ? '-rotate-45 translate-y-0' : 'translate-y-2'
+              }`}
           />
         </button>
       </header>
 
       {/* mobile overlay */}
       <div
-        className={`md:hidden fixed inset-0 z-40 ${
-          open ? 'pointer-events-auto' : 'pointer-events-none'
-        }`}
+        className={`md:hidden fixed inset-0 z-40 ${open ? 'pointer-events-auto' : 'pointer-events-none'
+          }`}
       >
         <div
           onClick={() => setOpen(false)}
-          className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${
-            open ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`absolute inset-0 bg-black/20 backdrop-blur-sm transition-opacity duration-500 ${open ? 'opacity-100' : 'opacity-0'
+            }`}
         />
         <div
-          className={`absolute top-0 right-0 h-full w-[85%] max-w-sm bg-white shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${
-            open ? 'translate-x-0' : 'translate-x-full'
-          }`}
+          className={`absolute top-0 right-0 h-full w-[85%] max-w-sm bg-white shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${open ? 'translate-x-0' : 'translate-x-full'
+            }`}
         >
           <div className="flex flex-col justify-center h-full px-8 gap-1">
             {navLinks.map((link, i) => (
@@ -554,18 +561,16 @@ function Navbar() {
                 key={link.label}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className={`text-4xl font-bold text-black hover:text-neutral-500 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${
-                  open ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
-                }`}
+                className={`text-4xl font-bold text-black hover:text-neutral-500 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${open ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+                  }`}
                 style={{ transitionDelay: open ? `${100 + i * 60}ms` : '0ms' }}
               >
                 {link.label}
               </a>
             ))}
             <div
-              className={`mt-8 pt-8 border-t border-neutral-200 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${
-                open ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
-              }`}
+              className={`mt-8 pt-8 border-t border-neutral-200 transition-all duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] ${open ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-8'
+                }`}
               style={{ transitionDelay: open ? '450ms' : '0ms' }}
             >
               <a href={PHONE_HREF} className="block text-lg font-semibold text-black mb-4">
@@ -685,7 +690,20 @@ function Section2({ focalX }: { focalX: number }) {
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const s2Reveal = useStaggeredReveal(4);
   const positions = useMaskPositions(section2Ref, cardsRef);
+  const openModalLead = useOpenModal();
 
+  const [activeCatalog, setActiveCatalog] = useState<'houses' | 'baths' | null>(null);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [activeGallery, setActiveGallery] = useState<string | null>(null);
+
+  const handleCategoryClick = (type: string | undefined) => {
+    if (!type) return;
+    if (type === 'houses' || type === 'baths') {
+      setActiveCatalog(type);
+    } else {
+      setActiveGallery(type);
+    }
+  };
 
   const sectionW = positions[0]?.sw ?? 0;
   const sectionH = positions[0]?.sh ?? 0;
@@ -773,28 +791,27 @@ function Section2({ focalX }: { focalX: number }) {
 
           cardRef={setCard(3)}
           style={s2Reveal.getAnimStyle(3)}
-          className="col-span-1 md:col-span-2 rounded-xl md:rounded-2xl overflow-hidden relative min-h-[200px] md:min-h-0"
+          className="col-span-1 md:col-span-2 rounded-xl md:rounded-2xl overflow-hidden relative min-h-[480px] md:min-h-0"
         >
-          <div className="absolute inset-0 z-10 flex flex-wrap md:flex-nowrap gap-1.5 md:gap-2 p-2 md:p-3">
-            {services.map((svc) => (
+          <div className="absolute inset-0 z-10 grid grid-cols-2 auto-rows-fr md:flex md:flex-row gap-1.5 md:gap-2 p-2 md:p-3">
+            {services.map((svc, index) => (
               <div
                 key={svc.name}
-                className={`group flex-1 min-w-[calc(50%-4px)] md:min-w-0 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col justify-between transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-default ${
-                  svc.active ? 'bg-white/90 backdrop-blur-md' : 'bg-white/10 hover:bg-white/20 backdrop-blur-xl'
-                }`}
+                onClick={() => handleCategoryClick(svc.type)}
+                className={`group md:flex-1 rounded-xl md:rounded-2xl p-3 md:p-5 flex flex-col justify-between transition-all duration-500 hover:-translate-y-1 hover:shadow-xl cursor-pointer ${index === 6 ? 'col-span-2 md:col-auto' : ''
+                  } ${svc.active ? 'bg-white/90 backdrop-blur-md' : 'bg-white/10 hover:bg-white/20 backdrop-blur-xl'
+                  }`}
               >
                 <h3
-                  className={`text-xl md:text-4xl font-bold leading-[1.05] whitespace-pre-line transition-transform duration-500 group-hover:scale-[1.02] origin-left ${
-                    svc.active ? 'text-black' : 'text-white'
-                  }`}
+                  className={`text-[13px] sm:text-base md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-[1.1] whitespace-pre-line transition-transform duration-500 group-hover:scale-[1.02] origin-left ${svc.active ? 'text-black' : 'text-white'
+                    }`}
                 >
                   {svc.name}
                 </h3>
                 {svc.num && (
                   <div
-                    className={`self-end w-8 h-8 md:w-12 md:h-12 rounded-full border flex items-center justify-center text-xs md:text-sm font-semibold transition-all duration-500 group-hover:rotate-12 ${
-                      svc.active ? 'border-black text-black' : 'border-white text-white'
-                    }`}
+                    className={`self-end w-6 h-6 sm:w-8 sm:h-8 md:w-12 md:h-12 rounded-full border flex items-center justify-center text-[10px] sm:text-xs md:text-sm font-semibold transition-all duration-500 group-hover:rotate-12 mt-2 ${svc.active ? 'border-black text-black' : 'border-white text-white'
+                      }`}
                   >
                     {svc.num}
                   </div>
@@ -804,6 +821,27 @@ function Section2({ focalX }: { focalX: number }) {
           </div>
         </MaskedCard>
       </div>
+
+      <CatalogModal
+        isOpen={activeCatalog !== null}
+        onClose={() => setActiveCatalog(null)}
+        title={activeCatalog === 'houses' ? 'Модульные дома' : 'Модульные бани-сауны'}
+        projects={activeCatalog === 'houses' ? housesData : bathsData}
+        onSelectProject={setSelectedProject}
+      />
+
+      <ProjectDetailsModal
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+        onOrder={(name) => { openModalLead(`Интересует проект: ${name}`); }}
+      />
+
+      <PhotoGalleryModal
+        isOpen={activeGallery !== null}
+        onClose={() => setActiveGallery(null)}
+        title={services.find(s => s.type === activeGallery)?.name.replace('\n', ' ') || ''}
+        images={activeGallery ? galleryCategories[activeGallery] || [] : []}
+      />
     </section>
   );
 }
@@ -1207,9 +1245,9 @@ function Footer() {
           <div>
             <div className="flex items-center gap-3 mb-6">
               <img src="/logo.jpg" alt="CM-HOUSE" className="h-11 w-auto rounded-md object-cover brightness-150" />
-              <div className="flex flex-col">
+              <div className="flex flex-col justify-center">
                 <div className="text-2xl font-extrabold uppercase tracking-tight leading-none">CM</div>
-                <div className="-mt-2 text-2xl font-extrabold uppercase tracking-tight leading-none">House</div>
+                <div className="text-2xl font-extrabold uppercase tracking-tight leading-none mt-0.5">House</div>
               </div>
             </div>
             <p className="text-sm text-neutral-400 leading-relaxed">
@@ -1297,8 +1335,16 @@ function Footer() {
 export default function App() {
   const isMobile = useIsMobile();
   const [modalOpen, setModalOpen] = useState(false);
-  const openModal = useCallback(() => setModalOpen(true), []);
-  const closeModal = useCallback(() => setModalOpen(false), []);
+  const [modalPrefill, setModalPrefill] = useState('');
+
+  const openModal = useCallback((prefill?: string | any) => {
+    setModalPrefill(typeof prefill === 'string' ? prefill : '');
+    setModalOpen(true);
+  }, []);
+  const closeModal = useCallback(() => {
+    setModalOpen(false);
+    setTimeout(() => setModalPrefill(''), 300);
+  }, []);
 
   const s1Focal = isMobile ? 0.7 : 0.8;
   const s2Focal = isMobile ? 0.65 : 0.8;
@@ -1315,7 +1361,7 @@ export default function App() {
         <SectionRequest />
         <Footer />
       </div>
-      <RequestModal open={modalOpen} onClose={closeModal} />
+      <RequestModal open={modalOpen} onClose={closeModal} prefill={modalPrefill} />
     </ModalContext.Provider>
   );
 }
