@@ -184,8 +184,9 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
           </div>
         </div>
       </div>
+    </div>
 
-      <PhotoGalleryModal
+    <PhotoGalleryModal
         isOpen={isFullscreen}
         onClose={() => setIsFullscreen(false)}
         images={project.images}
