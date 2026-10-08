@@ -69,6 +69,7 @@ type ProjectDetailsModalProps = {
 
 export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetailsModalProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { setCurrentSlide(0); }, [project?.id]);
@@ -90,8 +91,9 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
   const total = project.images.length;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 md:p-6 bg-black/80 backdrop-blur-md" onClick={onClose}>
-      <div
+    <>
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 md:p-6 bg-black/80 backdrop-blur-md" onClick={onClose}>
+        <div
         className="bg-[#111] border border-white/10 w-full h-full md:h-auto md:max-h-[90vh] md:max-w-6xl md:rounded-3xl overflow-hidden flex flex-col md:flex-row relative"
         onClick={e => e.stopPropagation()}
       >
@@ -109,7 +111,12 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
           >
             {project.images.map((img, i) => (
               <div key={i} className="w-full h-full shrink-0 snap-center">
-                <img src={img} alt={`${project.title} - ${i + 1}`} className="w-full h-full object-cover" />
+                <img 
+                  src={img} 
+                  alt={`${project.title} - ${i + 1}`} 
+                  className="w-full h-full object-cover cursor-pointer" 
+                  onClick={(e) => { e.stopPropagation(); setIsFullscreen(true); }}
+                />
               </div>
             ))}
           </div>
@@ -157,7 +164,7 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
             {project.price}
           </div>
 
-          <div className="text-white/70 text-base md:text-lg leading-relaxed mb-8">
+          <div className="text-white/70 text-base md:text-lg leading-relaxed mb-8 whitespace-pre-line">
             {project.description}
           </div>
 
@@ -177,7 +184,15 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
           </div>
         </div>
       </div>
-    </div>
+
+      <PhotoGalleryModal
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+        images={project.images}
+        title={project.title}
+        initialIndex={currentSlide}
+      />
+    </>
   );
 }
 
@@ -190,14 +205,15 @@ type PhotoGalleryModalProps = {
   onClose: () => void;
   images: string[];
   title: string;
+  initialIndex?: number;
 };
 
-export function PhotoGalleryModal({ isOpen, onClose, images, title }: PhotoGalleryModalProps) {
-  const [current, setCurrent] = useState(0);
+export function PhotoGalleryModal({ isOpen, onClose, images, title, initialIndex = 0 }: PhotoGalleryModalProps) {
+  const [current, setCurrent] = useState(initialIndex);
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);
 
-  useEffect(() => { if (isOpen) setCurrent(0); }, [isOpen]);
+  useEffect(() => { if (isOpen) setCurrent(initialIndex); }, [isOpen, initialIndex]);
 
   const total = images.length;
   const goPrev = useCallback(() => setCurrent(i => Math.max(0, i - 1)), []);
@@ -232,7 +248,7 @@ export function PhotoGalleryModal({ isOpen, onClose, images, title }: PhotoGalle
   if (!isOpen || !total) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col" onClick={onClose}>
+    <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col" onClick={onClose}>
       {/* Верхняя панель */}
       <div className="flex items-center justify-between px-5 py-4 relative z-50">
         <div className="flex items-center gap-3">
