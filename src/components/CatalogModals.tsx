@@ -2,6 +2,42 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Project } from '../data/catalogData';
 
 /* -------------------------------------------------------------------------- */
+/*  useScrollLock — блокировка прокрутки фона (работает на iOS Safari)         */
+/* -------------------------------------------------------------------------- */
+
+function useScrollLock(isLocked: boolean) {
+  const scrollYRef = useRef(0);
+
+  useEffect(() => {
+    if (!isLocked) return;
+
+    // Запомним текущую позицию прокрутки
+    scrollYRef.current = window.scrollY;
+    const scrollY = scrollYRef.current;
+
+    // Фиксируем body, чтобы предотвратить скролл на iOS
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.overflow = 'hidden';
+    // Предотвращаем «резинку» (bounce) на iOS
+    document.body.style.overscrollBehavior = 'none';
+
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+      // Восстанавливаем позицию прокрутки
+      window.scrollTo(0, scrollY);
+    };
+  }, [isLocked]);
+}
+
+/* -------------------------------------------------------------------------- */
 /*  Catalog Modal — сетка проектов (дома / бани)                               */
 /* -------------------------------------------------------------------------- */
 
@@ -14,6 +50,8 @@ type CatalogModalProps = {
 };
 
 export function CatalogModal({ isOpen, onClose, title, projects, onSelectProject }: CatalogModalProps) {
+  useScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   return (
@@ -71,6 +109,8 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useScrollLock(project !== null);
 
   useEffect(() => { setCurrentSlide(0); }, [project?.id]);
 
@@ -210,6 +250,8 @@ type PhotoGalleryModalProps = {
 };
 
 export function PhotoGalleryModal({ isOpen, onClose, images, title, initialIndex = 0 }: PhotoGalleryModalProps) {
+  useScrollLock(isOpen);
+
   const [current, setCurrent] = useState(initialIndex);
   const touchStartX = useRef(0);
   const touchDeltaX = useRef(0);

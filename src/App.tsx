@@ -82,6 +82,31 @@ const stats = [
 /*  Hooks                                                                     */
 /* -------------------------------------------------------------------------- */
 
+/** Блокировка прокрутки фона при открытых модалках (работает на iOS Safari) */
+function useScrollLock(isLocked: boolean) {
+  const scrollYRef = useRef(0);
+  useEffect(() => {
+    if (!isLocked) return;
+    scrollYRef.current = window.scrollY;
+    const scrollY = scrollYRef.current;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+    document.body.style.overflow = 'hidden';
+    document.body.style.overscrollBehavior = 'none';
+    return () => {
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      document.body.style.overscrollBehavior = '';
+      window.scrollTo(0, scrollY);
+    };
+  }, [isLocked]);
+}
+
 type MaskPos = { x: number; y: number; sw: number; sh: number };
 
 /** Позиции карточек относительно секции + размеры секции. */
@@ -411,15 +436,15 @@ function LeadForm({ idPrefix, prefill = '' }: { idPrefix: string, prefill?: stri
 }
 
 function RequestModal({ open, onClose, prefill = '' }: { open: boolean; onClose: () => void, prefill?: string }) {
+  useScrollLock(open);
+
   useEffect(() => {
     if (!open) return
-    document.body.style.overflow = 'hidden'
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handler)
     return () => {
-      document.body.style.overflow = ''
       window.removeEventListener('keydown', handler)
     }
   }, [open, onClose])
@@ -465,12 +490,7 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const openModal = useOpenModal();
 
-  useEffect(() => {
-    document.body.style.overflow = open ? 'hidden' : '';
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
+  useScrollLock(open);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -1010,14 +1030,7 @@ function SectionGallery() {
 
   const visiblePhotos = showAll ? GALLERY_PHOTOS : GALLERY_PHOTOS.slice(0, 6);
 
-  useEffect(() => {
-    if (lightboxIndex !== null) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [lightboxIndex]);
+  useScrollLock(lightboxIndex !== null);
 
   useEffect(() => {
     if (lightboxIndex === null) return;
