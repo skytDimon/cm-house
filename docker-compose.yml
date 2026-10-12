@@ -1,13 +1,16 @@
+version: '3.8'
+
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cm_house_web
+    restart: always
     ports:
       - "${PORT:-8080}:80"
     env_file:
       - .env
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+    environment:
+      - NODE_ENV=production
+      - PYTHONUNBUFFERED=1
