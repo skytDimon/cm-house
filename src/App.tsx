@@ -9,6 +9,7 @@ import {
 } from 'react'
 import type { CSSProperties, FormEvent, ReactNode, RefObject } from 'react'
 import { submitLead } from './lib/submitLead'
+import { useScrollLock } from './lib/scrollLock'
 import { CatalogModal, ProjectDetailsModal, PhotoGalleryModal } from './components/CatalogModals'
 import { housesData, bathsData, galleryCategories, type Project } from './data/catalogData'
 
@@ -18,27 +19,76 @@ import { housesData, bathsData, galleryCategories, type Project } from './data/c
 
 const HERO_IMAGE = '/photos/hero-house.jpg?v=3';
 
-const SECTION2_IMAGE = '/photos/baths-dusk.jpg?v=2';
+const SECTION2_IMAGE = '/photos/7x5/8.jpg';
 
 const SECTION3_BG = '/photos/barrel-snow.jpg';
 
 /* -------------------------------------------------------------------------- */
-/*  Gallery photos                                                             */
+/*  Gallery photos — лучшие фото из каждого блока (дома, бани, хозблоки и др.)*/
 /* -------------------------------------------------------------------------- */
 
-const GALLERY_PHOTOS = [
-  '/photos/gallery-01.jpg',
-  '/photos/gallery-02.jpg',
-  '/photos/gallery-03.jpg',
-  '/photos/gallery-04.jpg',
-  '/photos/gallery-05.jpg',
-  '/photos/gallery-06.jpg',
-  '/photos/gallery-07.jpg',
-  '/photos/gallery-08.jpg',
-  '/photos/gallery-09.jpg',
-  '/photos/gallery-10.jpg',
-  '/photos/gallery-11.jpg',
-  '/photos/gallery-12.jpg',
+type GalleryItem = {
+  src: string;
+  title: string;
+  category: string;
+};
+
+const GALLERY_PHOTOS: GalleryItem[] = [
+  {
+    src: '/photos/hero-house.jpg?v=3',
+    title: 'Модульный дом «Сканди 45»',
+    category: 'Модульные дома',
+  },
+  {
+    src: '/photos/banya/1.jpg',
+    title: 'Готовая баня 4×2,5 м',
+    category: 'Модульные бани',
+  },
+  {
+    src: '/photos/banya1/1.jpg',
+    title: 'Баня 6×2,5 м с крыльцом',
+    category: 'Модульные бани',
+  },
+  {
+    src: '/photos/banya2/1.jpg',
+    title: 'Модульная баня 6×2,45 м',
+    category: 'Модульные бани',
+  },
+  {
+    src: '/photos/banya3/1.jpg',
+    title: 'Баня 6×2,45 м с террасой',
+    category: 'Модульные бани',
+  },
+  {
+    src: '/photos/banya4/1.jpg',
+    title: 'Модульная баня 4,5×2,5 м',
+    category: 'Модульные бани',
+  },
+  {
+    src: '/photos/gallery-05.jpg',
+    title: 'Хозяйственный блок',
+    category: 'Хозблоки',
+  },
+  {
+    src: '/photos/gallery-10.jpg',
+    title: 'Беседка для отдыха',
+    category: 'Беседки',
+  },
+  {
+    src: '/photos/gallery-01.jpg',
+    title: 'Садовые качели',
+    category: 'Качели',
+  },
+  {
+    src: '/photos/baths-dusk.jpg?v=2',
+    title: 'Готовый спа-комплекс',
+    category: 'Готовые комплексы',
+  },
+  {
+    src: '/photos/gallery-08.jpg',
+    title: 'Свайный фундамент',
+    category: 'Свайные фундаменты',
+  },
 ];
 
 /* -------------------------------------------------------------------------- */
@@ -82,30 +132,7 @@ const stats = [
 /*  Hooks                                                                     */
 /* -------------------------------------------------------------------------- */
 
-/** Блокировка прокрутки фона при открытых модалках (работает на iOS Safari) */
-function useScrollLock(isLocked: boolean) {
-  const scrollYRef = useRef(0);
-  useEffect(() => {
-    if (!isLocked) return;
-    scrollYRef.current = window.scrollY;
-    const scrollY = scrollYRef.current;
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehavior = 'none';
-    return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.overflow = '';
-      document.body.style.overscrollBehavior = '';
-      window.scrollTo(0, scrollY);
-    };
-  }, [isLocked]);
-}
+
 
 type MaskPos = { x: number; y: number; sw: number; sh: number };
 
@@ -304,7 +331,16 @@ function useOpenModal() {
   return useContext(ModalContext)
 }
 
-const INTEREST_OPTIONS = ['Баня', 'Модульный дом', 'Другое'] as const
+const INTEREST_OPTIONS = [
+  'Баня',
+  'Модульный дом',
+  'Все остальные хозяйственные блоки',
+  'Беседки',
+  'Качели',
+  'Готовые комплексы',
+  'Свайные фундаменты',
+  'Другое',
+] as const
 
 function LeadForm({ idPrefix, prefill = '' }: { idPrefix: string, prefill?: string }) {
   const [name, setName] = useState('')
@@ -316,14 +352,25 @@ function LeadForm({ idPrefix, prefill = '' }: { idPrefix: string, prefill?: stri
 
   useEffect(() => {
     if (prefill) {
-      if (prefill.toLowerCase().includes('бан') || prefill.toLowerCase().includes('саун')) {
-        setInterest('Баня')
-      } else if (prefill.toLowerCase().includes('дом') || prefill.toLowerCase().includes('сканди') || prefill.toLowerCase().includes('барн')) {
-        setInterest('Модульный дом')
+      const lower = prefill.toLowerCase();
+      if (lower.includes('бан') || lower.includes('саун')) {
+        setInterest('Баня');
+      } else if (lower.includes('дом') || lower.includes('сканди') || lower.includes('барн')) {
+        setInterest('Модульный дом');
+      } else if (lower.includes('хоз') || lower.includes('блок')) {
+        setInterest('Все остальные хозяйственные блоки');
+      } else if (lower.includes('беседк')) {
+        setInterest('Беседки');
+      } else if (lower.includes('качел')) {
+        setInterest('Качели');
+      } else if (lower.includes('комплекс')) {
+        setInterest('Готовые комплексы');
+      } else if (lower.includes('фундамент')) {
+        setInterest('Свайные фундаменты');
       } else {
-        setInterest('Другое')
+        setInterest('Другое');
       }
-      setComment(prefill)
+      setComment(prefill);
     }
   }, [prefill])
 
@@ -407,13 +454,13 @@ function LeadForm({ idPrefix, prefill = '' }: { idPrefix: string, prefill?: stri
 
       <div>
         <label htmlFor={`${idPrefix}-comment`} className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">
-          Комментарий
+          Название объекта, размер, планировка, сроки
         </label>
         <textarea
           id={`${idPrefix}-comment`}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Размер, планировка, сроки — всё, что важно"
+          placeholder="Название объекта, который вас интересует, или размер, планировка, сроки"
           rows={3}
           className={`${inputCls} resize-none`}
         />
@@ -1067,19 +1114,27 @@ function SectionGallery() {
 
         {/* Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3">
-          {visiblePhotos.map((src, i) => (
+          {visiblePhotos.map((item, i) => (
             <div
-              key={src}
+              key={item.src}
               style={reveal.getAnimStyle(Math.min(i, 5))}
-              className="aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden cursor-pointer group"
+              className="aspect-[4/3] rounded-xl md:rounded-2xl overflow-hidden cursor-pointer group relative"
               onClick={() => setLightboxIndex(i)}
             >
               <img
-                src={src}
-                alt={`Проект CM-HOUSE ${i + 1}`}
+                src={item.src}
+                alt={item.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent opacity-90 md:opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2.5 md:p-4">
+                <span className="text-[10px] md:text-xs font-semibold text-white/70 uppercase tracking-wider">
+                  {item.category}
+                </span>
+                <span className="text-xs md:text-sm font-bold text-white line-clamp-1">
+                  {item.title}
+                </span>
+              </div>
             </div>
           ))}
         </div>
@@ -1091,7 +1146,7 @@ function SectionGallery() {
               onClick={() => setShowAll(true)}
               className="px-8 py-4 bg-stone-100 rounded-full text-black text-sm md:text-base font-semibold hover:bg-stone-200 transition-colors duration-200"
             >
-              Показать ещё {GALLERY_PHOTOS.length - 6} фото
+              Показать все {GALLERY_PHOTOS.length} фото
             </button>
           </div>
         )}
@@ -1100,7 +1155,7 @@ function SectionGallery() {
       {/* Lightbox */}
       {lightboxIndex !== null && (
         <div
-          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex items-center justify-center p-4"
+          className="fixed inset-0 z-[200] bg-black flex items-center justify-center p-4"
           onClick={() => setLightboxIndex(null)}
         >
           {/* Close */}
@@ -1124,9 +1179,9 @@ function SectionGallery() {
 
           {/* Image */}
           <img
-            src={GALLERY_PHOTOS[lightboxIndex]}
-            alt={`Проект ${lightboxIndex + 1}`}
-            className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            src={GALLERY_PHOTOS[lightboxIndex].src}
+            alt={GALLERY_PHOTOS[lightboxIndex].title}
+            className="max-w-full max-h-[82vh] object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
             loading="lazy"
           />
@@ -1142,9 +1197,11 @@ function SectionGallery() {
             ›
           </button>
 
-          {/* Counter */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm font-medium">
-            {lightboxIndex + 1} / {GALLERY_PHOTOS.length}
+          {/* Title and Counter */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-white text-xs md:text-sm font-medium">
+            <span>{GALLERY_PHOTOS[lightboxIndex].title}</span>
+            <span className="text-white/50">•</span>
+            <span className="text-white/70">{lightboxIndex + 1} / {GALLERY_PHOTOS.length}</span>
           </div>
         </div>
       )}

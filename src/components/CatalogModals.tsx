@@ -1,41 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import type { Project } from '../data/catalogData';
-
-/* -------------------------------------------------------------------------- */
-/*  useScrollLock — блокировка прокрутки фона (работает на iOS Safari)         */
-/* -------------------------------------------------------------------------- */
-
-function useScrollLock(isLocked: boolean) {
-  const scrollYRef = useRef(0);
-
-  useEffect(() => {
-    if (!isLocked) return;
-
-    // Запомним текущую позицию прокрутки
-    scrollYRef.current = window.scrollY;
-    const scrollY = scrollYRef.current;
-
-    // Фиксируем body, чтобы предотвратить скролл на iOS
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.overflow = 'hidden';
-    // Предотвращаем «резинку» (bounce) на iOS
-    document.body.style.overscrollBehavior = 'none';
-
-    return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.overflow = '';
-      document.body.style.overscrollBehavior = '';
-      // Восстанавливаем позицию прокрутки
-      window.scrollTo(0, scrollY);
-    };
-  }, [isLocked]);
-}
+import { useScrollLock } from '../lib/scrollLock';
 
 /* -------------------------------------------------------------------------- */
 /*  Catalog Modal — сетка проектов (дома / бани)                               */
@@ -55,24 +20,24 @@ export function CatalogModal({ isOpen, onClose, title, projects, onSelectProject
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-6 bg-black/95 md:bg-black/90 backdrop-blur-md" onClick={onClose}>
       <div
-        className="bg-white/10 backdrop-blur-xl border border-white/20 w-full max-w-5xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col relative"
+        className="bg-[#121214] border-0 md:border md:border-white/15 w-full h-full md:h-auto md:max-h-[90vh] md:max-w-5xl md:rounded-3xl overflow-hidden flex flex-col relative"
         onClick={e => e.stopPropagation()}
       >
-        <div className="p-6 border-b border-white/20 flex justify-between items-center bg-black/40">
-          <h2 className="text-3xl font-bold text-white">{title}</h2>
-          <button onClick={onClose} className="w-10 h-10 bg-white/20 hover:bg-white/40 rounded-full flex items-center justify-center text-white transition-colors">
+        <div className="p-4 md:p-6 border-b border-white/10 flex justify-between items-center bg-[#18181c]">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">{title}</h2>
+          <button onClick={onClose} className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors">
             ✕
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#121214] overscroll-contain">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {projects.map(proj => (
               <div
                 key={proj.id}
-                className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:bg-white/10 transition-colors"
+                className="group bg-[#1a1a1e] border border-white/10 rounded-2xl overflow-hidden cursor-pointer hover:bg-[#222228] transition-colors"
                 onClick={() => onSelectProject(proj)}
               >
                 <div className="aspect-[4/3] overflow-hidden relative">
@@ -132,9 +97,9 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
 
   return (
     <>
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 md:p-6 bg-black/80 backdrop-blur-md" onClick={onClose}>
+      <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 md:p-6 bg-black/95 md:bg-black/90 backdrop-blur-md" onClick={onClose}>
         <div
-        className="bg-[#111] border border-white/10 w-full h-full md:h-auto md:max-h-[90vh] md:max-w-6xl md:rounded-3xl overflow-hidden flex flex-col md:flex-row relative"
+        className="bg-[#111] border-0 md:border md:border-white/15 w-full h-full md:h-auto md:max-h-[90vh] md:max-w-6xl md:rounded-3xl overflow-hidden flex flex-col md:flex-row relative"
         onClick={e => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-4 right-4 z-50 w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-md border border-white/20">
@@ -291,7 +256,7 @@ export function PhotoGalleryModal({ isOpen, onClose, images, title, initialIndex
   if (!isOpen || !total) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] bg-black/95 backdrop-blur-xl flex flex-col" onClick={onClose}>
+    <div className="fixed inset-0 z-[120] bg-black flex flex-col" onClick={onClose}>
       {/* Верхняя панель */}
       <div className="flex items-center justify-between px-5 py-4 relative z-50">
         <div className="flex items-center gap-3">
