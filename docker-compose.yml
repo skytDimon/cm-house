@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "${PORT:-8080}:80"
+    env_file:
+      - .env
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost/health"]
