@@ -1,28 +1,51 @@
 import { useEffect } from 'react';
 
+type LenisLike = {
+  scroll: number;
+  stop: () => void;
+  start: () => void;
+  scrollTo: (target: number, options?: { immediate?: boolean; force?: boolean }) => void;
+};
+
+let lenisInstance: LenisLike | null = null;
+
+export function setLenisInstance(instance: LenisLike | null) {
+  lenisInstance = instance;
+}
+
+export function getLenisInstance(): LenisLike | null {
+  return lenisInstance;
+}
+
 let lockCount = 0;
 let savedScrollY = 0;
 
 /**
- * Блокировка прокрутки фона страницы.
- * Поддерживает множественные вложенные модалки (счётчик lockCount)
- * и предотвращает сброс позиции на iOS и других браузерах.
+ * Блокировка прокрутки фона страницы при открытии модалок.
+ * Сохраняет точную позицию скролла и предотвращает сброс наверх при закрытии.
  */
 export function lockScroll() {
   if (lockCount === 0) {
-    savedScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0;
-    const scrollY = savedScrollY;
+    savedScrollY = Math.round(
+      lenisInstance?.scroll ??
+      window.scrollY ??
+      window.pageYOffset ??
+      document.documentElement.scrollTop ??
+      0
+    );
 
-    // Временно отключаем плавный скролл, чтобы восстановление было мгновенным
-    document.documentElement.style.scrollBehavior = 'auto';
+    // Останавливаем Lenis
+    try {
+      lenisInstance?.stop();
+    } catch {
+      // ignore
+    }
 
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = '0';
-    document.body.style.right = '0';
-    document.body.style.width = '100%';
+    // Блокируем скролл документа без использования position: fixed,
+    // чтобы не схлопывать высоту страницы и не сбрасывать scroll в 0
+    document.documentElement.classList.add('lenis-stopped');
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    document.body.style.overscrollBehavior = 'none';
   }
   lockCount++;
 }
@@ -32,21 +55,21 @@ export function unlockScroll() {
   if (lockCount === 0) {
     const scrollY = savedScrollY;
 
-    document.body.style.position = '';
-    document.body.style.top = '';
-    document.body.style.left = '';
-    document.body.style.right = '';
-    document.body.style.width = '';
+    // Снимаем блокировку скролла
+    document.documentElement.classList.remove('lenis-stopped');
+    document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
-    document.body.style.overscrollBehavior = '';
 
-    // Мгновенно возвращаем скролл на сохранённую позицию без прыжков
+    // Гарантируем восстановление сохранённой позиции
     window.scrollTo({ top: scrollY, left: 0, behavior: 'instant' as ScrollBehavior });
 
-    // Возвращаем плавный скролл на следующем кадре
-    requestAnimationFrame(() => {
-      document.documentElement.style.scrollBehavior = '';
-    });
+    // Возобновляем Lenis и синхронизируем позицию
+    try {
+      lenisInstance?.start();
+      lenisInstance?.scrollTo(scrollY, { immediate: true, force: true });
+    } catch {
+      // ignore
+    }
   }
 }
 

@@ -32,7 +32,7 @@ export function CatalogModal({ isOpen, onClose, title, projects, onSelectProject
           </button>
         </div>
 
-        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#121214] overscroll-contain">
+        <div data-lenis-prevent className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#121214] overscroll-contain">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {projects.map(proj => (
               <div
@@ -109,6 +109,7 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
         {/* Слайдер с фото */}
         <div className="w-full md:w-3/5 h-[40vh] md:h-[80vh] bg-black relative">
           <div
+            data-lenis-prevent
             ref={scrollRef}
             onScroll={handleScroll}
             className="flex overflow-x-auto snap-x snap-mandatory w-full h-full"
@@ -159,7 +160,7 @@ export function ProjectDetailsModal({ project, onClose, onOrder }: ProjectDetail
         </div>
 
         {/* Инфо (справа на ПК, снизу на моб) */}
-        <div className="w-full md:w-2/5 p-6 md:p-10 flex flex-col overflow-y-auto bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
+        <div data-lenis-prevent className="w-full md:w-2/5 p-6 md:p-10 flex flex-col overflow-y-auto bg-gradient-to-b from-[#1a1a1a] to-[#0a0a0a]">
           <div className="flex items-center gap-3 mb-4">
             <span className="bg-white/10 border border-white/20 text-white px-3 py-1 rounded-full text-sm">{project.area}</span>
           </div>

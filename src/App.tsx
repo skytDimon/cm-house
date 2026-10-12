@@ -12,6 +12,8 @@ import { submitLead } from './lib/submitLead'
 import { useScrollLock } from './lib/scrollLock'
 import { CatalogModal, ProjectDetailsModal, PhotoGalleryModal } from './components/CatalogModals'
 import { housesData, bathsData, galleryCategories, type Project } from './data/catalogData'
+import { initLenis } from './lib/lenis'
+import { ScrollHUD } from './components/ScrollHUD'
 
 /* -------------------------------------------------------------------------- */
 /*  Image URLs — отобранные кадры из /photos (модульные дома и бани CM-HOUSE)  */
@@ -20,6 +22,7 @@ import { housesData, bathsData, galleryCategories, type Project } from './data/c
 const HERO_IMAGE = '/photos/hero-house.jpg?v=3';
 
 const SECTION2_IMAGE = '/photos/7x5/8.jpg';
+const SECTION2_IMAGE_MOBILE = '/photos/banya3/2.jpg';
 
 const SECTION3_BG = '/photos/barrel-snow.jpg';
 
@@ -506,6 +509,7 @@ function RequestModal({ open, onClose, prefill = '' }: { open: boolean; onClose:
         onClick={onClose}
       />
       <div
+        data-lenis-prevent
         className={`relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 md:p-8 max-h-[90vh] overflow-y-auto transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${open ? 'translate-y-0 scale-100' : 'translate-y-6 scale-95'
           }`}
       >
@@ -751,6 +755,8 @@ function Section1({ focalX }: { focalX: number }) {
 /* -------------------------------------------------------------------------- */
 
 function Section2({ focalX }: { focalX: number }) {
+  const isMobile = useIsMobile();
+  const section2Bg = isMobile ? SECTION2_IMAGE_MOBILE : SECTION2_IMAGE;
   const section2Ref = useRef<HTMLElement | null>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
   const s2Reveal = useStaggeredReveal(4);
@@ -772,7 +778,7 @@ function Section2({ focalX }: { focalX: number }) {
 
   const sectionW = positions[0]?.sw ?? 0;
   const sectionH = positions[0]?.sh ?? 0;
-  const imageSize = useImageCover(SECTION2_IMAGE, sectionW, sectionH);
+  const imageSize = useImageCover(section2Bg, sectionW, sectionH);
 
   const setCard = (i: number) => (el: HTMLDivElement | null) => {
     cardsRef.current[i] = el;
@@ -789,7 +795,7 @@ function Section2({ focalX }: { focalX: number }) {
     >
       <div className="flex-1 min-h-0 grid grid-cols-1 md:grid-cols-2 grid-rows-[auto_auto_auto_auto] md:grid-rows-[1fr_1fr_0.8fr] gap-1.5 md:gap-2">
         <MaskedCard
-          bgImage={SECTION2_IMAGE}
+          bgImage={section2Bg}
           position={positions[0]}
           imageSize={imageSize}
           focalX={focalX}
@@ -808,7 +814,7 @@ function Section2({ focalX }: { focalX: number }) {
         </MaskedCard>
 
         <MaskedCard
-          bgImage={SECTION2_IMAGE}
+          bgImage={section2Bg}
           position={positions[1]}
           imageSize={imageSize}
           focalX={focalX}
@@ -831,7 +837,7 @@ function Section2({ focalX }: { focalX: number }) {
         </MaskedCard>
 
         <MaskedCard
-          bgImage={SECTION2_IMAGE}
+          bgImage={section2Bg}
           position={positions[2]}
           imageSize={imageSize}
           focalX={focalX}
@@ -849,7 +855,7 @@ function Section2({ focalX }: { focalX: number }) {
         </MaskedCard>
 
         <MaskedCard
-          bgImage={SECTION2_IMAGE}
+          bgImage={section2Bg}
           position={positions[3]}
           imageSize={imageSize}
           focalX={focalX}
@@ -1352,6 +1358,10 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalPrefill, setModalPrefill] = useState('');
 
+  useEffect(() => {
+    initLenis();
+  }, []);
+
   const openModal = useCallback((prefill?: string | any) => {
     setModalPrefill(typeof prefill === 'string' ? prefill : '');
     setModalOpen(true);
@@ -1366,6 +1376,7 @@ export default function App() {
 
   return (
     <ModalContext.Provider value={openModal}>
+      <ScrollHUD />
       <div className="bg-white">
         <Navbar />
         <Section1 focalX={s1Focal} />
