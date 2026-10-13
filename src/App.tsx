@@ -11,7 +11,7 @@ import type { CSSProperties, FormEvent, ReactNode, RefObject } from 'react'
 import { submitLead } from './lib/submitLead'
 import { useScrollLock } from './lib/scrollLock'
 import { CatalogModal, ProjectDetailsModal, PhotoGalleryModal } from './components/CatalogModals'
-import { housesData, bathsData, galleryCategories, type Project } from './data/catalogData'
+import { housesData, bathsData, utilityData, galleryCategories, type Project } from './data/catalogData'
 import { initLenis } from './lib/lenis'
 import { ScrollHUD } from './components/ScrollHUD'
 
@@ -76,6 +76,11 @@ const GALLERY_PHOTOS: GalleryItem[] = [
     src: '/photos/bed/1.jpg',
     title: 'Садовые качели',
     category: 'Качели',
+  },
+  {
+    src: '/photos/hoz/1.jpg',
+    title: 'Модульный хозблок с дровником',
+    category: 'Хозблоки',
   },
   {
     src: '/photos/kompl/1.jpg',
@@ -753,13 +758,13 @@ function Section2({ focalX }: { focalX: number }) {
   const positions = useMaskPositions(section2Ref, cardsRef);
   const openModalLead = useOpenModal();
 
-  const [activeCatalog, setActiveCatalog] = useState<'houses' | 'baths' | null>(null);
+  const [activeCatalog, setActiveCatalog] = useState<'houses' | 'baths' | 'utility' | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [activeGallery, setActiveGallery] = useState<string | null>(null);
 
   const handleCategoryClick = (type: string | undefined) => {
     if (!type) return;
-    if (type === 'houses' || type === 'baths') {
+    if (type === 'houses' || type === 'baths' || type === 'utility') {
       setActiveCatalog(type);
     } else {
       setActiveGallery(type);
@@ -886,8 +891,20 @@ function Section2({ focalX }: { focalX: number }) {
       <CatalogModal
         isOpen={activeCatalog !== null}
         onClose={() => setActiveCatalog(null)}
-        title={activeCatalog === 'houses' ? 'Модульные дома' : 'Модульные бани-сауны'}
-        projects={activeCatalog === 'houses' ? housesData : bathsData}
+        title={
+          activeCatalog === 'houses'
+            ? 'Модульные дома'
+            : activeCatalog === 'baths'
+            ? 'Модульные бани-сауны'
+            : 'Хозяйственные блоки'
+        }
+        projects={
+          activeCatalog === 'houses'
+            ? housesData
+            : activeCatalog === 'baths'
+            ? bathsData
+            : utilityData
+        }
         onSelectProject={setSelectedProject}
       />
 

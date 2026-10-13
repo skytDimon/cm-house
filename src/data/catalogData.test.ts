@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { housesData, bathsData, galleryCategories } from './catalogData'
+import { housesData, bathsData, utilityData, galleryCategories } from './catalogData'
 
 describe('catalogData', () => {
   it('housesData contains valid project objects', () => {
@@ -28,6 +28,19 @@ describe('catalogData', () => {
     }
   })
 
+  it('utilityData contains valid project objects with images and descriptions', () => {
+    expect(utilityData.length).toBeGreaterThan(0)
+    for (const item of utilityData) {
+      expect(item.id).toBeTruthy()
+      expect(item.title).toBeTruthy()
+      expect(item.area).toMatch(/м²/)
+      expect(item.price).toBeTruthy()
+      expect(item.description).toBeTruthy()
+      expect(Array.isArray(item.images)).toBe(true)
+      expect(item.images.length).toBe(3)
+    }
+  })
+
   it('galleryCategories contains required category lists', () => {
     expect(galleryCategories).toHaveProperty('utility')
     expect(galleryCategories).toHaveProperty('gazebos')
@@ -35,8 +48,14 @@ describe('catalogData', () => {
     expect(galleryCategories).toHaveProperty('complexes')
     expect(galleryCategories).toHaveProperty('foundations')
 
-    // utility and foundations should be empty
-    expect(galleryCategories.utility).toEqual([])
+    // utility should have 3 photos from hoz
+    expect(galleryCategories.utility).toEqual([
+      '/photos/hoz/1.jpg',
+      '/photos/hoz/2.jpg',
+      '/photos/hoz/3.jpg'
+    ])
+
+    // foundations should be empty
     expect(galleryCategories.foundations).toEqual([])
 
     // gazebos should have 4 photos from besed
