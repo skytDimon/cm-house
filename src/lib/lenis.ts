@@ -4,13 +4,6 @@ import { setLenisInstance } from './scrollLock';
 
 let lenis: Lenis | null = null;
 
-export type ScrollCallback = (e: {
-  scroll: number;
-  limit: number;
-  velocity: number;
-  direction: number;
-  progress: number;
-}) => void;
 
 /**
  * Инициализация Lenis Smooth Scroll с физикой, повторяющей getartcraft.com/apps:

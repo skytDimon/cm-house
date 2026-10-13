@@ -238,7 +238,11 @@ export function PhotoGalleryModal({ isOpen, onClose, images, title, initialIndex
   }, []);
   const onTouchEnd = useCallback(() => {
     if (Math.abs(touchDeltaX.current) > 50) {
-      touchDeltaX.current < 0 ? goNext() : goPrev();
+      if (touchDeltaX.current < 0) {
+        goNext();
+      } else {
+        goPrev();
+      }
     }
   }, [goNext, goPrev]);
 

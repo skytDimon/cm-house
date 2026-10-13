@@ -33,5 +33,10 @@ skills-lock.json
 .env.*
 !.env.example
 
-# cache
+# cache & tests
 .cache
+.pytest_cache/
+.coverage
+coverage/
+__pycache__/
+*.pyc
