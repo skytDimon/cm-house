@@ -68,29 +68,19 @@ const GALLERY_PHOTOS: GalleryItem[] = [
     category: 'Модульные бани',
   },
   {
-    src: '/photos/gallery-05.jpg',
-    title: 'Хозяйственный блок',
-    category: 'Хозблоки',
-  },
-  {
-    src: '/photos/gallery-10.jpg',
+    src: '/photos/besed/1.jpg',
     title: 'Беседка для отдыха',
     category: 'Беседки',
   },
   {
-    src: '/photos/gallery-01.jpg',
+    src: '/photos/bed/1.jpg',
     title: 'Садовые качели',
     category: 'Качели',
   },
   {
-    src: '/photos/baths-dusk.jpg?v=2',
+    src: '/photos/kompl/1.jpg',
     title: 'Готовый спа-комплекс',
     category: 'Готовые комплексы',
-  },
-  {
-    src: '/photos/gallery-08.jpg',
-    title: 'Свайный фундамент',
-    category: 'Свайные фундаменты',
   },
 ];
 
@@ -457,13 +447,13 @@ function LeadForm({ idPrefix, prefill = '' }: { idPrefix: string, prefill?: stri
 
       <div>
         <label htmlFor={`${idPrefix}-comment`} className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">
-          Название объекта, размер, планировка, сроки
+          Комментарий
         </label>
         <textarea
           id={`${idPrefix}-comment`}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Название объекта, который вас интересует, или размер, планировка, сроки"
+          placeholder="Комментарий"
           rows={3}
           className={`${inputCls} resize-none`}
         />

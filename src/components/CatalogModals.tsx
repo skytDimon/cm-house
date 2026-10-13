@@ -254,7 +254,41 @@ export function PhotoGalleryModal({ isOpen, onClose, images, title, initialIndex
     return () => window.removeEventListener('keydown', handler);
   }, [isOpen, goPrev, goNext, onClose]);
 
-  if (!isOpen || !total) return null;
+  if (!isOpen) return null;
+
+  if (total === 0) {
+    return (
+      <div
+        className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+        onClick={onClose}
+      >
+        <div
+          className="bg-neutral-900 border border-white/10 rounded-2xl p-6 md:p-8 max-w-md w-full text-center relative shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+          >
+            ✕
+          </button>
+          <div className="w-14 h-14 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4 text-2xl">
+            🏗️
+          </div>
+          <h2 className="text-xl md:text-2xl font-bold text-white mb-2">{title}</h2>
+          <p className="text-white/70 text-sm md:text-base mb-6 leading-relaxed">
+            Еще нет работ в этой сфере
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-white text-black font-semibold rounded-xl hover:bg-white/90 active:scale-98 transition-all"
+          >
+            Понятно
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-[120] bg-black flex flex-col" onClick={onClose}>

@@ -162,26 +162,22 @@ export const bathsData: Project[] = [
 ];
 
 export const galleryCategories: Record<string, string[]> = {
-  utility: [
-    '/photos/gallery-05.jpg',
-    '/photos/gallery-06.jpg',
-    '/photos/gallery-07.jpg'
-  ],
+  utility: [],
   gazebos: [
-    '/photos/gallery-10.jpg',
-    '/photos/gallery-11.jpg',
-    '/photos/gallery-12.jpg'
+    '/photos/besed/1.jpg',
+    '/photos/besed/2.jpg',
+    '/photos/besed/3.jpg',
+    '/photos/besed/4.jpg'
   ],
   swings: [
-    '/photos/gallery-01.jpg',
-    '/photos/gallery-02.jpg'
+    '/photos/bed/1.jpg',
+    '/photos/bed/2.jpg',
+    '/photos/bed/3.jpg',
+    '/photos/bed/4.jpg',
+    '/photos/bed/5.jpg'
   ],
   complexes: [
-    '/photos/hero-house.jpg?v=3',
-    '/photos/baths-dusk.jpg?v=2'
+    '/photos/kompl/1.jpg'
   ],
-  foundations: [
-    '/photos/gallery-08.jpg',
-    '/photos/gallery-09.jpg'
-  ]
+  foundations: []
 };
